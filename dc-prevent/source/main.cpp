@@ -19,6 +19,44 @@ enum ItemID : int
   EXIT,
 };
 
+// Global variable to hold the last click time
+//
+static DWORD lastClickTime = 0;
+
+LRESULT CALLBACK RawInputCallback(LPARAM lParam)
+{
+  RAWINPUT rawInput[sizeof(RAWINPUT)]{};
+  UINT size = sizeof(RAWINPUT);
+
+  GetRawInputData(
+    (HRAWINPUT)lParam, 
+    RID_INPUT, 
+    rawInput,
+    &size, 
+    sizeof(RAWINPUTHEADER)
+  );
+
+  if (rawInput->header.dwType != RIM_TYPEMOUSE)
+    return 0;
+
+  RAWMOUSE* rawMouse = &rawInput->data.mouse;
+
+  if (rawMouse->usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN)
+  {
+    DWORD currentTime = GetTickCount();
+
+    if (currentTime - lastClickTime < 200)
+    {
+      // Disregard the click if it was within 50ms of the last click
+      //
+      std::cout << "Double click detected, disregarding\n";
+      return -1;
+    }
+
+    lastClickTime = currentTime;
+  }
+}
+
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   switch (msg)
@@ -54,6 +92,10 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 
     break;
   }
+  case WM_INPUT:
+  {
+    return RawInputCallback(lParam);
+  } 
   case WM_USER + 1:
   {
     // Handle only the right mouse click on the tray icon
@@ -123,6 +165,23 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
   return 0;
 }
 
+#define HID_USAGE_PAGE_GENERIC  0x1
+#define HID_USAGE_GENERIC_MOUSE 0x2
+
+bool RegisterRawInput(HWND hwnd)
+{
+  RAWINPUTDEVICE rid[1];
+
+  // Register the mouse device
+  //
+  rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+  rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
+  rid[0].dwFlags = RIDEV_INPUTSINK;
+  rid[0].hwndTarget = hwnd;
+
+  return RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
   HANDLE mutex = CreateMutex(nullptr, TRUE, mutexName.c_str());
@@ -163,15 +222,27 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   {
     DWORD error = GetLastError();
 
-    MessageBox(hwndMessage, 
+    MessageBox(nullptr,
       std::format(L"CreateWindowExW failed with error code {}", error).c_str(), 
       L"Info",
       MB_OK);
     
-    return 0;
+    return -1;
   }
 
-  std::printf("Tray successfully created!\n\n");
+  std::printf("Tray successfully created!\n");
+
+  if (!RegisterRawInput(hwndMessage))
+  {
+    MessageBox(nullptr,
+      std::format(L"Failed to register Raw Input\n").c_str(),
+      L"Info",
+      MB_OK);
+
+    return -1;
+  }
+
+  std::printf("Raw input registered!\n\n");
 
   MSG msg = { 0 };
 
