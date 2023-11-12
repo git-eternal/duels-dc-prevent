@@ -41,6 +41,9 @@ LRESULT CALLBACK MouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK RawInputCallback(LPARAM lParam)
 {
+  if (!enableDcPrevent)
+    return 0;
+
   RAWINPUT rawInput[sizeof(RAWINPUT)]{};
   UINT size = sizeof(RAWINPUT);
 
