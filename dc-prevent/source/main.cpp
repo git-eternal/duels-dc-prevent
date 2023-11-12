@@ -264,11 +264,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   if (!RegisterRawInput(hwndMessage))
   {
-    MessageBox(nullptr,
-      std::format(L"Failed to register Raw Input\n").c_str(),
-      L"Info",
-      MB_OK);
-
+    MessageBox(nullptr, L"Failed to register Raw Input", L"Info", MB_OK);
     return -1;
   }
 
