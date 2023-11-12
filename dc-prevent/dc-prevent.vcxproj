@@ -129,16 +129,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\x64\Release\32.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resource.h" />
+    <ClInclude Include="resource\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="dc-prevent.rc" />
+    <ResourceCompile Include="resource\dc-prevent.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

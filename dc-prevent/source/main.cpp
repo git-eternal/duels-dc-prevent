@@ -3,7 +3,8 @@
 #include <windows.h>
 #include <iostream>
 #include <format>
-#include "resource.h"
+
+#include "../resource/resource.h"
 
 const std::wstring mutexName = L"DC_Instance";
 
@@ -40,7 +41,7 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
     wcscpy_s(nid.szTip, sizeof(nid.szTip) / sizeof(wchar_t), L"DC Prevent Tray");
 
     Shell_NotifyIcon(NIM_ADD, &nid);
-
+    
     // Create the context menu
     //
     hMenu = CreatePopupMenu();
