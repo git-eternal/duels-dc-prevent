@@ -22,6 +22,22 @@ enum ItemID : int
 // Global variable to hold the last click time
 //
 static DWORD lastClickTime = 0;
+static std::atomic<bool> shouldBlockClick{};
+static HHOOK hMouseHook{};
+
+LRESULT CALLBACK MouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam)
+{
+  if (nCode == HC_ACTION)
+  {
+    if (shouldBlockClick)
+    {
+      shouldBlockClick = false;
+      return -1;
+    }
+  }
+
+  return CallNextHookEx(hMouseHook, nCode, wParam, lParam);
+}
 
 LRESULT CALLBACK RawInputCallback(LPARAM lParam)
 {
@@ -43,13 +59,15 @@ LRESULT CALLBACK RawInputCallback(LPARAM lParam)
 
   if (rawMouse->usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN)
   {
-    DWORD currentTime = GetTickCount();
+    DWORD64 currentTime = GetTickCount64();
 
-    if (currentTime - lastClickTime < 200)
+    if (currentTime - lastClickTime < 50)
     {
       // Disregard the click if it was within 50ms of the last click
       //
       std::cout << "Double click detected, disregarding\n";
+      shouldBlockClick = true;
+
       return -1;
     }
 
@@ -170,6 +188,15 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 bool RegisterRawInput(HWND hwnd)
 {
+  // Initialize our mouse hook
+  //
+  hMouseHook = SetWindowsHookEx(
+    WH_MOUSE_LL, 
+    MouseHookCallback, 
+    GetModuleHandleA(0), 
+    NULL
+  );
+
   RAWINPUTDEVICE rid[1];
 
   // Register the mouse device
