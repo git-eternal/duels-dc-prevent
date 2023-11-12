@@ -9,6 +9,7 @@
 const std::wstring mutexName = L"DC_Instance";
 
 static bool enableDcPrevent = true;
+static bool showDebugConsole = true;
 static HMENU hMenu;
 
 enum ItemID : int 
@@ -70,9 +71,27 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
       //
       enableDcPrevent = !enableDcPrevent;
 
-      CheckMenuItem(hMenu, 1, MF_BYCOMMAND | (enableDcPrevent ? MF_CHECKED : MF_UNCHECKED));
+      CheckMenuItem(
+        hMenu, 
+        ItemID::TOGGLE, 
+        MF_BYCOMMAND | (enableDcPrevent ? MF_CHECKED : MF_UNCHECKED)
+      );
 
-      std::cout << std::format("DC Prevent is now: {}", enableDcPrevent ? "enabled" : "disabled") << '\n';
+      std::cout << std::format("DC Prevent is now: {}\n",
+        enableDcPrevent ? "enabled" : "disabled");
+    }
+
+    if (selected == ItemID::CONSOLE)
+    {
+      showDebugConsole = !showDebugConsole;
+
+      CheckMenuItem(
+        hMenu, 
+        ItemID::CONSOLE, 
+        MF_BYCOMMAND | (showDebugConsole ? MF_CHECKED : MF_UNCHECKED)
+      );
+
+      ShowWindow(GetConsoleWindow(), showDebugConsole ? SW_SHOW : SW_HIDE);
     }
 
     if (selected == ItemID::EXIT)
@@ -106,15 +125,6 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-#ifdef TEST_MODE
-  FILE* p_file = nullptr;
-
-  AllocConsole();
-
-  freopen_s(&p_file, "CONOUT$", "w", stdout);
-  freopen_s(&p_file, "CONIN$", "r", stdin);
-#endif
-
   HANDLE mutex = CreateMutex(nullptr, TRUE, mutexName.c_str());
 
   if (GetLastError() == ERROR_ALREADY_EXISTS) 
@@ -122,6 +132,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     MessageBox(nullptr, L"An instance of DC Prevent is already running", L"Error", MB_ICONEXCLAMATION);
     return -8;
   }
+
+  // Allocate our console
+  //
+  static FILE* file{};
+
+  AllocConsole();
+
+  freopen_s(&file, "CONOUT$", "w", stdout);
+  freopen_s(&file, "CONIN$", "r", stdin);
 
   const auto windowClassName = L"Duels DC Prevent";
 
