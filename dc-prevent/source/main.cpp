@@ -21,7 +21,7 @@ enum ItemID : int
 
 // Global variable to hold the last click time
 //
-static DWORD lastClickTime = 0;
+static DWORD64 lastClickTime = 0;
 static std::atomic<bool> shouldBlockClick{};
 static HHOOK hMouseHook{};
 
@@ -260,6 +260,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     return -1;
   }
 
+  std::printf("[duels.us dc-prevent] by: https://github.com/git-eternal\n\n");
+
   std::printf("Tray successfully created!\n");
 
   if (!RegisterRawInput(hwndMessage))
@@ -277,4 +279,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     TranslateMessage(&msg);
     DispatchMessage(&msg);
   }
+
+  return 0;
 }
