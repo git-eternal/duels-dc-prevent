@@ -66,11 +66,12 @@ LRESULT CALLBACK RawInputCallback(LPARAM lParam)
 
     if (currentTime - lastClickTime < 50)
     {
+      static int dcCount{ 0 };
+
       // Disregard the click if it was within 50ms of the last click
       //
-      std::cout << "Double click detected, disregarding\n";
+      std::cout << std::format("Double click detected, disregarding [{}]\n", ++dcCount);
       shouldBlockClick = true;
-
       return -1;
     }
 
