@@ -1,4 +1,4 @@
-#define TEST_MODE
+#define BUILD_VER L"1.1"
 
 #include <windows.h>
 #include <iostream>
@@ -110,7 +110,11 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
     AppendMenu(hMenu, MF_CHECKED, 1, L"Prevent double clicks");
     AppendMenu(hMenu, MF_CHECKED, 2, L"Toggle debug console");
     AppendMenu(hMenu, MF_SEPARATOR, 0, NULL); // Add a separator
-    AppendMenu(hMenu, MF_STRING, 3, L"Exit (build 1.0)");
+
+    std::wstring exitString = 
+      std::format(L"Exit (build {})", BUILD_VER);
+
+    AppendMenu(hMenu, MF_STRING, 3, exitString.c_str());
 
     break;
   }
@@ -232,6 +236,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   freopen_s(&file, "CONOUT$", "w", stdout);
   freopen_s(&file, "CONIN$", "r", stdin);
 
+  std::printf("DCPrevent (https://github.com/git-eternal)\n [build: %ws]\n\n", BUILD_VER);
+
   const auto windowClassName = L"Duels DC Prevent";
 
   WNDCLASSEX wc = { 0 };
@@ -261,9 +267,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     return -1;
   }
 
-  std::printf("[duels.us dc-prevent] by: https://github.com/git-eternal\n\n");
-
-  std::printf("Tray successfully created!\n");
+  std::printf("[+] Tray successfully created!\n");
 
   if (!RegisterRawInput(hwndMessage))
   {
@@ -271,7 +275,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     return -1;
   }
 
-  std::printf("Raw input registered!\n\n");
+  std::printf("[+] Raw input registered!\n\n");
 
   MSG msg = { 0 };
 
