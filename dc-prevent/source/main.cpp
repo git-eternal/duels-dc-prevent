@@ -236,6 +236,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   freopen_s(&file, "CONOUT$", "w", stdout);
   freopen_s(&file, "CONIN$", "r", stdin);
 
+  SetConsoleTitleW(std::format(L"DCPrevent - Build {}", BUILD_VER).c_str());
+
   std::printf("DCPrevent (https://github.com/git-eternal)\n [build: %ws]\n\n", BUILD_VER);
 
   const auto windowClassName = L"Duels DC Prevent";
